@@ -10,6 +10,8 @@ module Math.Lattices.Fplll
   , defaultLLL
 
   , lllReduce
+  , lllReduceTrack
+  , lllReduceTrackInv
 
   , lmWrapper
   , lmProved
