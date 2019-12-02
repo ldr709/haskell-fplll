@@ -8,13 +8,22 @@ extern "C"
 {
 	RedStatus hs_ffi_lll_reduction(int vecs, int len, mpz_t* b, double delta, double eta,
 	                               LLLMethod method, FloatType floatType, int precision,
-	                               int flags);
+	                               LLLFlags flags);
 	RedStatus hs_ffi_lll_reduction_u(int vecs, int len, mpz_t* b, int u_len, mpz_t* u, double delta,
 	                                 double eta, LLLMethod method, FloatType floatType,
-	                                 int precision, int flags);
+	                                 int precision, LLLFlags flags);
 	RedStatus hs_ffi_lll_reduction_uinv(int vecs, int len, mpz_t* b, int u_len, mpz_t* u,
 	                                    mpz_t* u_inv, double delta, double eta, LLLMethod method,
-	                                    FloatType floatType, int precision, int flags);
+	                                    FloatType floatType, int precision, LLLFlags flags);
+	RedStatus hs_ffi_lll_reduction_u_id(int vecs, int len, mpz_t* b, mpz_t* u, double delta,
+	                                    double eta, LLLMethod method, FloatType floatType,
+	                                    int precision, LLLFlags flags);
+	RedStatus hs_ffi_lll_reduction_uinv_id(int vecs, int len, mpz_t* b, mpz_t* u, mpz_t* u_inv,
+	                                       double delta, double eta, LLLMethod method,
+	                                       FloatType floatType, int precision, LLLFlags flags);
+
+	extern const double lllDefaultDelta = LLL_DEF_DELTA;
+	extern const double lllDefaultEta = LLL_DEF_ETA;
 
 	extern const int lmWrapper   = LM_WRAPPER;
 	extern const int lmProved    = LM_PROVED;
@@ -32,6 +41,11 @@ extern "C"
 	extern const int ftMpfr       = FT_MPFR;
 
 	extern const char* const* const floatTypeStr = FLOAT_TYPE_STR;
+
+	extern const int lllVerbose  = LLL_VERBOSE;
+	extern const int lllEarlyRed = LLL_EARLY_RED;
+	extern const int lllSiegel   = LLL_SIEGEL;
+	extern const int lllDefault  = LLL_DEFAULT;
 
 	extern const int redSuccess         = RED_SUCCESS;
 	extern const int redGsoFailure      = RED_GSO_FAILURE;
@@ -66,7 +80,7 @@ static void destructure_zzmat(int vecs, int len, const ZZ_mat<mpz_t>& in,
 }
 
 RedStatus hs_ffi_lll_reduction(int vecs, int len, mpz_t* b, double delta, double eta,
-                               LLLMethod method, FloatType floatType, int precision, int flags)
+                               LLLMethod method, FloatType floatType, int precision, LLLFlags flags)
 {
 	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
 
@@ -81,7 +95,7 @@ RedStatus hs_ffi_lll_reduction(int vecs, int len, mpz_t* b, double delta, double
 
 RedStatus hs_ffi_lll_reduction_u(int vecs, int len, mpz_t* b, int u_len, mpz_t* u, double delta,
                                  double eta, LLLMethod method, FloatType floatType,
-                                 int precision, int flags)
+                                 int precision, LLLFlags flags)
 {
 	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
 	ZZ_mat<mpz_t> u_zzmat = construct_zzmat(vecs, u_len, u);
@@ -98,7 +112,7 @@ RedStatus hs_ffi_lll_reduction_u(int vecs, int len, mpz_t* b, int u_len, mpz_t* 
 
 RedStatus hs_ffi_lll_reduction_uinv(int vecs, int len, mpz_t* b, int u_len, mpz_t* u,
                                     mpz_t* u_inv, double delta, double eta, LLLMethod method,
-                                    FloatType floatType, int precision, int flags)
+                                    FloatType floatType, int precision, LLLFlags flags)
 {
 	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
 	ZZ_mat<mpz_t> u_zzmat = construct_zzmat(vecs, u_len, u);
@@ -112,6 +126,45 @@ RedStatus hs_ffi_lll_reduction_uinv(int vecs, int len, mpz_t* b, int u_len, mpz_
 
 	destructure_zzmat(vecs, len, b_zzmat, b);
 	destructure_zzmat(vecs, u_len, u_zzmat, u);
+	destructure_zzmat(vecs, vecs, uinv_zzmat, u_inv);
+	return exit_code;
+}
+
+RedStatus hs_ffi_lll_reduction_u_id(int vecs, int len, mpz_t* b, mpz_t* u, double delta,
+                                    double eta, LLLMethod method, FloatType floatType,
+                                    int precision, LLLFlags flags)
+{
+	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
+	ZZ_mat<mpz_t> u_zzmat;
+	u_zzmat.gen_identity(vecs);
+
+	RedStatus exit_code = (RedStatus) lll_reduction(
+		b_zzmat, u_zzmat, delta, eta, method, floatType, precision, flags);
+	if (exit_code != RED_SUCCESS)
+		return exit_code;
+
+	destructure_zzmat(vecs, len, b_zzmat, b);
+	destructure_zzmat(vecs, vecs, u_zzmat, u);
+	return exit_code;
+}
+
+RedStatus hs_ffi_lll_reduction_uinv_id(int vecs, int len, mpz_t* b, mpz_t* u, mpz_t* u_inv,
+                                       double delta, double eta, LLLMethod method,
+                                       FloatType floatType, int precision, LLLFlags flags)
+{
+	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
+	ZZ_mat<mpz_t> u_zzmat;
+	u_zzmat.gen_identity(vecs);
+	ZZ_mat<mpz_t> uinv_zzmat;
+	uinv_zzmat.gen_identity(vecs);
+
+	RedStatus exit_code = (RedStatus) lll_reduction(
+		b_zzmat, u_zzmat, uinv_zzmat, delta, eta, method, floatType, precision, flags);
+	if (exit_code != RED_SUCCESS)
+		return exit_code;
+
+	destructure_zzmat(vecs, len, b_zzmat, b);
+	destructure_zzmat(vecs, vecs, u_zzmat, u);
 	destructure_zzmat(vecs, vecs, uinv_zzmat, u_inv);
 	return exit_code;
 }
