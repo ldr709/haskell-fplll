@@ -9,12 +9,6 @@ extern "C"
 	RedStatus hs_ffi_lll_reduction(int vecs, int len, mpz_t* b, double delta, double eta,
 	                               LLLMethod method, FloatType floatType, int precision,
 	                               LLLFlags flags);
-	RedStatus hs_ffi_lll_reduction_u(int vecs, int len, mpz_t* b, int u_len, mpz_t* u, double delta,
-	                                 double eta, LLLMethod method, FloatType floatType,
-	                                 int precision, LLLFlags flags);
-	RedStatus hs_ffi_lll_reduction_uinv(int vecs, int len, mpz_t* b, int u_len, mpz_t* u,
-	                                    mpz_t* u_inv, double delta, double eta, LLLMethod method,
-	                                    FloatType floatType, int precision, LLLFlags flags);
 	RedStatus hs_ffi_lll_reduction_u_id(int vecs, int len, mpz_t* b, mpz_t* u, double delta,
 	                                    double eta, LLLMethod method, FloatType floatType,
 	                                    int precision, LLLFlags flags);
@@ -90,43 +84,6 @@ RedStatus hs_ffi_lll_reduction(int vecs, int len, mpz_t* b, double delta, double
 		return exit_code;
 
 	destructure_zzmat(vecs, len, b_zzmat, b);
-	return exit_code;
-}
-
-RedStatus hs_ffi_lll_reduction_u(int vecs, int len, mpz_t* b, int u_len, mpz_t* u, double delta,
-                                 double eta, LLLMethod method, FloatType floatType,
-                                 int precision, LLLFlags flags)
-{
-	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
-	ZZ_mat<mpz_t> u_zzmat = construct_zzmat(vecs, u_len, u);
-
-	RedStatus exit_code = (RedStatus) lll_reduction(
-		b_zzmat, u_zzmat, delta, eta, method, floatType, precision, flags);
-	if (exit_code != RED_SUCCESS)
-		return exit_code;
-
-	destructure_zzmat(vecs, len, b_zzmat, b);
-	destructure_zzmat(vecs, u_len, u_zzmat, u);
-	return exit_code;
-}
-
-RedStatus hs_ffi_lll_reduction_uinv(int vecs, int len, mpz_t* b, int u_len, mpz_t* u,
-                                    mpz_t* u_inv, double delta, double eta, LLLMethod method,
-                                    FloatType floatType, int precision, LLLFlags flags)
-{
-	ZZ_mat<mpz_t> b_zzmat = construct_zzmat(vecs, len, b);
-	ZZ_mat<mpz_t> u_zzmat = construct_zzmat(vecs, u_len, u);
-	ZZ_mat<mpz_t> uinv_zzmat;
-	uinv_zzmat.gen_identity(vecs);
-
-	RedStatus exit_code = (RedStatus) lll_reduction(
-		b_zzmat, u_zzmat, uinv_zzmat, delta, eta, method, floatType, precision, flags);
-	if (exit_code != RED_SUCCESS)
-		return exit_code;
-
-	destructure_zzmat(vecs, len, b_zzmat, b);
-	destructure_zzmat(vecs, u_len, u_zzmat, u);
-	destructure_zzmat(vecs, vecs, uinv_zzmat, u_inv);
 	return exit_code;
 }
 

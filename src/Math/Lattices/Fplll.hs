@@ -159,65 +159,6 @@ lllReduceTrackInv opts b =
                  (peekBasis vecs vecs uArr)
                  (peekBasis vecs vecs uInvArr)
 
-lllReduceTrackFrom :: LLLOptions -> [[Integer]] -> [[Integer]]
-                   -> Either RedStatus ([[Integer]], [[Integer]])
-lllReduceTrackFrom opts b u =
-  unsafePerformIO $
-  allocaAndPokeBasis b $ \vecs len bArr ->
-    allocaAndPokeBasis u $ \uVecs uLen uArr -> do
-      if vecs /= uVecs
-        then error "u and b have different numbers of basis vectors"
-        else return ()
-      status <-
-        c_lll_reduction_u
-          (fromIntegral vecs)
-          (fromIntegral len)
-          bArr
-          (fromIntegral uLen)
-          uArr
-          (CDouble $ delta opts)
-          (CDouble $ eta opts)
-          (method opts)
-          (floatType opts)
-          (fromIntegral $ precision opts)
-          (flags opts)
-      if status /= redSuccess
-        then return $ Left status
-        else Right <$> liftA2 (,) (peekBasis vecs len bArr) (peekBasis vecs uLen uArr)
-
-lllReduceTrackFromInv :: LLLOptions -> [[Integer]] -> [[Integer]]
-                      -> Either RedStatus ([[Integer]], [[Integer]], [[Integer]])
-lllReduceTrackFromInv opts b u =
-  unsafePerformIO $
-  allocaAndPokeBasis b $ \vecs len bArr ->
-    allocaAndPokeBasis u $ \uVecs uLen uArr ->
-      allocaMpz (vecs * vecs) $ \uInvArr -> do
-        if vecs /= uVecs
-          then error "u and b have different numbers of basis vectors"
-          else return ()
-        status <-
-          c_lll_reduction_uinv
-            (fromIntegral vecs)
-            (fromIntegral len)
-            bArr
-            (fromIntegral uLen)
-            uArr
-            uInvArr
-            (CDouble $ delta opts)
-            (CDouble $ eta opts)
-            (method opts)
-            (floatType opts)
-            (fromIntegral $ precision opts)
-            (flags opts)
-        if status /= redSuccess
-          then return $ Left status
-          else Right <$>
-               liftA3
-                 (,,)
-                 (peekBasis vecs len bArr)
-                 (peekBasis vecs uLen uArr)
-                 (peekBasis vecs vecs uInvArr)
-
 
 allocaMpz :: Int -> (Ptr MPZ -> IO a) -> IO a
 allocaMpz len f =
@@ -414,12 +355,6 @@ foreign import ccall "&redStatusStr" c_redStatusStr :: Ptr (Ptr CString)
 foreign import ccall unsafe "hs_ffi_lll_reduction"
   c_lll_reduction :: CInt -> CInt -> Ptr MPZ -> CDouble -> CDouble -> LLLMethod -> FloatType -> CInt
                      -> LLLFlags -> IO RedStatus
-foreign import ccall unsafe "hs_ffi_lll_reduction_u"
-  c_lll_reduction_u :: CInt -> CInt -> Ptr MPZ -> CInt -> Ptr MPZ -> CDouble -> CDouble -> LLLMethod
-                       -> FloatType -> CInt -> LLLFlags -> IO RedStatus
-foreign import ccall unsafe "hs_ffi_lll_reduction_uinv"
-  c_lll_reduction_uinv :: CInt -> CInt -> Ptr MPZ -> CInt -> Ptr MPZ -> Ptr MPZ -> CDouble -> CDouble
-                          -> LLLMethod -> FloatType -> CInt -> LLLFlags -> IO RedStatus
 foreign import ccall unsafe "hs_ffi_lll_reduction_u_id"
   c_lll_reduction_u_id :: CInt -> CInt -> Ptr MPZ -> Ptr MPZ -> CDouble -> CDouble -> LLLMethod
                        -> FloatType -> CInt -> LLLFlags -> IO RedStatus
