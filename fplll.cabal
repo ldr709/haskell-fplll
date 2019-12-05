@@ -40,7 +40,10 @@ build-type:          Configure
 
 library
   -- Modules exported by the library.
-  exposed-modules:     Math.Lattices.Fplll
+  exposed-modules:
+      Math.Lattices.Fplll.Types
+    , Math.Lattices.Fplll.LLL
+    , Math.Lattices.Fplll.Internal
 
   -- Modules included in this library but not exported.
   -- other-modules:

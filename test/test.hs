@@ -1,7 +1,7 @@
-import Math.Lattices.Fplll
+import Math.Lattices.Fplll.LLL
 import System.Exit
 
-testStr = show ftLongDouble
+testStr = show defaultLLL
 
 main = do
   putStrLn testStr
