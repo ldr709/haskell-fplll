@@ -1,3 +1,7 @@
+{-|
+  Bindings to FPLLL's implementation of the LLL Algorithm.
+-}
+
 module Math.Lattices.Fplll.LLL
   ( lllReduce
   , lllReduceTrack
@@ -14,14 +18,15 @@ import Math.Lattices.Fplll.Internal
 import Math.Lattices.Fplll.Types
 import System.IO.Unsafe
 
+-- | Options to configure the LLL reduction algorithm.
 data LLLOptions =
   LLLOptions
-    { delta :: Double
-    , eta :: Double
-    , method :: LLLMethod
-    , floatType :: FloatType
-    , precision :: Int
-    , flags :: LLLFlags
+    { delta :: Double         -- ^ δ controls the Lovász condition, i.e. how much the length of consecutive Gram-Schmidt orthogonal basis vectors can decrease.
+    , eta :: Double           -- ^ η is an upper bound on the largest Gram-Schmidt coefficient, i.e. how far from orthogonal the reduced basis can be.
+    , method :: LLLMethod     -- ^ LLL reduction method.
+    , floatType :: FloatType  -- ^ What sort of floating point to use for orthogonalization.
+    , precision :: Int        -- ^ Bits of precision for floating point if ftMpfr is used. Chooses automatically if set to zero.
+    , flags :: LLLFlags       -- ^ Extra options for the LLL reduction.
     }
   deriving (Eq, Ord, Show)
 
@@ -35,7 +40,8 @@ defaultLLL =
     , flags = lllDefault
     }
 
-
+-- | Compute an LLL-reduced basis for the given lattice. Each item of the list is a basis vector.
+-- Returns a @Left 'RedStatus'@ on failure.
 lllReduce :: LLLOptions -> [[Integer]] -> Either RedStatus [[Integer]]
 lllReduce opts b =
   unsafePerformIO $
@@ -55,6 +61,9 @@ lllReduce opts b =
       then return $ Left status
       else Right <$> peekBasis vecs len bArr
 
+-- | Similar to 'lllReduce', but additionally return (in the second output) the operations that were
+-- applied to the basis vectors. In other words, the second return value tracks the operations
+-- applied to the basis vectors by applying them to the identity matrix as well.
 lllReduceTrack :: LLLOptions -> [[Integer]] -> Either RedStatus ([[Integer]], [[Integer]])
 lllReduceTrack opts b =
   unsafePerformIO $
@@ -76,6 +85,8 @@ lllReduceTrack opts b =
         then return $ Left status
         else Right <$> liftA2 (,) (peekBasis vecs len bArr) (peekBasis vecs vecs uArr)
 
+-- | Like 'lllReduceTrackInv', but return the inverse matrix of the applied operations in the third
+-- output.
 lllReduceTrackInv :: LLLOptions -> [[Integer]]
                   -> Either RedStatus ([[Integer]], [[Integer]], [[Integer]])
 lllReduceTrackInv opts b =

@@ -12,7 +12,7 @@ name:                fplll
 version:             0.1.0.0
 
 -- A short (one-line) description of the package.
-synopsis:            Haskell bindings to fplll
+synopsis:            Haskell bindings to <https://fplll.github.io/fplll/ fplll>
 
 -- A longer description of the package.
 -- description:
@@ -30,8 +30,8 @@ author:              Lance Roy
 -- patches.
 maintainer:          ldr709@gmail.com
 
--- A copyright notice.
--- copyright:
+homepage:            https://github.com/ldr709/haskell-fplll
+bug-reports:         https://github.com/ldr709/haskell-fplll/issues
 
 category:            Math
 

@@ -16,8 +16,10 @@ import Numeric.GMP.Utils
 
 newtype LLLMethod = LLLMethod CInt deriving (Eq, Ord, Storable)
 newtype FloatType = FloatType CInt deriving (Eq, Ord, Storable)
-newtype LLLFlags  = LLLFlags  CInt deriving (Eq, Ord, Storable)
 newtype RedStatus = RedStatus CInt deriving (Eq, Ord, Storable)
+
+-- | Flags controlling LLL reduction. Can be combined using 'Algebra.Lattice.\/'.
+newtype LLLFlags  = LLLFlags  CInt deriving (Eq, Ord, Storable)
 
 
 allocaMpz :: Int -> (Ptr MPZ -> IO a) -> IO a
