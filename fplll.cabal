@@ -37,6 +37,8 @@ category:            Math
 
 build-type:          Configure
 
+extra-source-files:  configure fplll.buildinfo.in
+
 
 library
   -- Modules exported by the library.
